@@ -1,15 +1,20 @@
 from draw import *
+from layers import *
 
 if __name__ == "__main__":
     # DEMO
-    folder = 'ejemplo_03'
+    folder = 'ejemplo_01'
+    layers = 2
+    vertices, edges, faces = connect_layers(folder, layers)
 
-    layer = '01'
-    vertices, edges, faces = save_data(folder, layer)
+    # ejemplo_01
+    draw_face(faces['f1'])
+    draw_face(faces['f2'])
 
-    draw_face(faces['CARA2'])
-    draw_face(faces['CARA3'])
-    draw_face(faces['CARA4'])
+    # ejemplo_03
+    #draw_face(faces['CARA2'])
+    #draw_face(faces['CARA3'])
+    #draw_face(faces['CARA4'])
 
     draw()
     # exit()

@@ -1,4 +1,4 @@
-from data import *
+from classes import Edge, Face
 import numpy as np
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
@@ -32,15 +32,15 @@ def draw_from_edge(edge: Edge):
         next_edge = curr.next
         if next_edge == edge: break
         curr = next_edge
-
     if len(vertices) > 2: # case of polygon
         xy = np.array([[point.x, point.y] for point in vertices])
         polygon = Polygon(xy, True)
         patches.append(polygon)
-
-    x, y = separate(vertices + [vertices[0]])
-    plt.scatter(x, y, color='grey')
-    plt.plot(x, y, color='grey')
+        x, y = separate(vertices + [vertices[0]])
+    else:
+        x, y = separate(vertices)
+    ax.scatter(x, y, color='grey')
+    ax.plot(x, y, color='grey')
 
 
 def draw_face(face: Face):

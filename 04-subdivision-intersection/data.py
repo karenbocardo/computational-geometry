@@ -28,8 +28,19 @@ def read_files(folder, layer):
     faces_data = read_file(path(faces_ext))
     return vertices_data, edges_data, faces_data
 
+def save_layers(folder, layers):
+    vertices, edges, faces = dict(), dict(), dict()
+    for index in range(1, layers + 1):
+        # layer = '01'
+        new_vertices, new_edges, new_faces = save_layer(folder, f"0{index}")
+        vertices |= new_vertices
+        edges |= new_edges
+        faces |= new_faces
 
-def save_data(folder, layer):
+    return vertices, edges, faces
+
+
+def save_layer(folder, layer):
     '''
     Reads lines from three files that contain data for vertices, edges and data,
     and saves the data on instances of those classes. It also links all the objects
@@ -38,8 +49,8 @@ def save_data(folder, layer):
     :param layer: Number of layer on files
     :return:
     '''
-    def says_none(s):
-        return s == 'None'
+    def says_none(s): return s == 'None'
+
     vertices_data, edges_data, faces_data = read_files(folder, layer)
     vertices_map, edges_map, faces_map = dict(), dict(), dict()
     for line in vertices_data: # reads and saves vertices
@@ -86,8 +97,3 @@ def save_data(folder, layer):
             face.inside = [edges_map[inside] for inside in face.inside]
     # return list(vertices_map.values()), list(edges_map.values()), list(faces_map.values())
     return vertices_map, edges_map, faces_map
-
-
-
-
-
