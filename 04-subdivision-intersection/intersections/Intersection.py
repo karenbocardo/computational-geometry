@@ -5,4 +5,7 @@ class Intersection:
     self.point = point
     self.segments = segments
   def __repr__(self):
-    return f"{self.point} -> {[segment.name for segment in self.segments]}"
+    res = f"{self.point} ->"
+    for segment in self.segments:
+        res += f" {segment}"
+    return res
