@@ -5,8 +5,6 @@ class Vertex():
         self.name = name
         self.point = point
         self.incident = incident # initially a string
-    def get_coordinates(self):
-        return self.x, self.y
 
 class Edge():
     def __init__(self, name, origin, pair, face, next, previous):
@@ -16,6 +14,31 @@ class Edge():
         self.face = face
         self.next = next
         self.previous = previous
+    def figure_vertices(self):
+        '''
+        :return: List of the points of the vertices that start in this edge
+        '''
+        vertices = list()  # list of points
+        curr = self
+        while curr:  # cicle to read figure edges
+            vertex = curr.origin
+            vertices.append(vertex.point)
+            next_edge = curr.next
+            if next_edge == self: break
+            curr = next_edge
+        return vertices
+    def figure_edges(self):
+        '''
+        :return: List of the edges connected to this edge
+        '''
+        edges = list()  # list of points
+        curr = self
+        while curr:  # cicle to read figure edges
+            edges.append(curr)
+            next_edge = curr.next
+            if next_edge == self: break
+            curr = next_edge
+        return edges
 
 class Face():
     def __init__(self, name, outside, inside):

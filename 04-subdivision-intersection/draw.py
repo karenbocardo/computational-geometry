@@ -22,16 +22,7 @@ def draw_from_edge(edge: Edge):
     :param edge: Start edge for
     :return: None
     '''
-    vertices = list() # list of points
-    curr = edge
-    while curr: # cicle to read figure edges
-        vertex = curr.origin
-        # coordinates = [vertex.point.x, vertex.point.y]
-        vertices.append(vertex.point)
-
-        next_edge = curr.next
-        if next_edge == edge: break
-        curr = next_edge
+    vertices = edge.figure_vertices()
     if len(vertices) > 2: # case of polygon
         xy = np.array([[point.x, point.y] for point in vertices])
         polygon = Polygon(xy, True)
@@ -64,5 +55,5 @@ def draw():
     p.set_array(np.array(colors))
     ax.add_collection(p)
     ax.margins(0.05)
-    plt.savefig("fig.png")
-    # plt.show()
+    #plt.savefig("fig.png")
+    plt.show()
