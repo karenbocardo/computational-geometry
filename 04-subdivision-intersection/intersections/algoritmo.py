@@ -76,8 +76,10 @@ class AlgoritmoBarrido():
     if not interseccion: return
     if p.y> interseccion.y:
       e = Evento(interseccion)
-      e.C.add(si)
-      e.C.add(sd)
+      if si.puntos[1] != interseccion:
+        e.C.add(si)
+      if sd.puntos[1] != interseccion:
+        e.C.add(sd)
       self.Q.add(e)
   def barrer(self):
       e = None
