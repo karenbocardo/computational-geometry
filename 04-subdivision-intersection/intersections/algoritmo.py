@@ -1,6 +1,7 @@
 from .Eventos import Eventos
 from .LineaBarrido import LineaBarrido
 from .Evento import Evento
+from .Intersection import Intersection
 from colorama import Fore as F
 from colorama import Style as S
 
@@ -35,7 +36,9 @@ class AlgoritmoBarrido():
     # Agrega el evento a la solución como una intersección si hay por lo menos
     # dos líneas que participen en el evento.
     if len(evento.I|evento.T|evento.C) > 1:
-      self.R+= (p, evento.I|evento.T|evento.C)
+      #self.R+= (p, evento.I|evento.T|evento.C)
+      intersection = Intersection(list(evento.I|evento.T|evento.C), p)
+      self.R.append(intersection)
     # Eliminamos de la linea de barrido los segmentos que no continuan  
     for s in list(evento.T|evento.C):
       del self.T[s]
