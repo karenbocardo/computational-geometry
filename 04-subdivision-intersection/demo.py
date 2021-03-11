@@ -11,12 +11,5 @@ if __name__ == "__main__":
     draw_face(faces['CARA3'])
     draw_face(faces['CARA4'])
 
-    # patches
-    colors = 100 * np.random.rand(len(patches))
-    p = PatchCollection(patches, alpha=0.5)
-    p.set_array(np.array(colors))
-    ax.add_collection(p)
-    ax.margins(0.05)
-    plt.savefig("fig.png")
-    # plt.show()
+    draw()
     # exit()

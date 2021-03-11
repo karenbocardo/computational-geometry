@@ -8,6 +8,13 @@ import matplotlib.pyplot as plt
 ax = plt.subplot()
 patches = []
 
+def separate(points):
+    x, y = [], []
+    for point in points:
+        x.append(point.x)
+        y.append(point.y)
+    return x, y
+
 def draw_from_edge(edge: Edge):
     '''
     Draws a figure given a start Edge by reading the Edge Linked List next Edge,
@@ -15,20 +22,25 @@ def draw_from_edge(edge: Edge):
     :param edge: Start edge for
     :return: None
     '''
-    vertices = list()
+    vertices = list() # list of points
     curr = edge
     while curr: # cicle to read figure edges
         vertex = curr.origin
-        coordinates = [vertex.point.x, vertex.point.y]
-        vertices.append(coordinates)
+        # coordinates = [vertex.point.x, vertex.point.y]
+        vertices.append(vertex.point)
 
         next_edge = curr.next
         if next_edge == edge: break
         curr = next_edge
 
-    xy = np.array(vertices)
-    polygon = Polygon(xy, True)
-    patches.append(polygon)
+    if len(vertices) > 2: # case of polygon
+        xy = np.array([[point.x, point.y] for point in vertices])
+        polygon = Polygon(xy, True)
+        patches.append(polygon)
+
+    x, y = separate(vertices + [vertices[0]])
+    plt.scatter(x, y, color='grey')
+    plt.plot(x, y, color='grey')
 
 
 def draw_face(face: Face):
@@ -45,3 +57,12 @@ def draw_face(face: Face):
     if face.outside:
         draw_from_edge(face.outside)
 
+def draw():
+    # patches
+    colors = 100 * np.random.rand(len(patches))
+    p = PatchCollection(patches, alpha=0.5)
+    p.set_array(np.array(colors))
+    ax.add_collection(p)
+    ax.margins(0.05)
+    plt.savefig("fig.png")
+    # plt.show()
