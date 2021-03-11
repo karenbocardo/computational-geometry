@@ -2,6 +2,7 @@
 edges linked list - reading data from files
 '''
 from classes import *
+
 '''
 ejemplo_01
     layer +
@@ -44,7 +45,7 @@ def save_data(folder, layer):
     for line in vertices_data: # reads and saves vertices
         # Nombre  x  y  Incidente
         name, x, y, incident = line.split()
-        vertex = Vertex(name, float(x), float(y), incident)
+        vertex = Vertex(name, Point(float(x), float(y)), incident)
         vertices_map[name] = vertex
     for line in edges_data: # reads and saves edges
         # Nombre  Origen  Pareja  Cara    Sigue   Antes

@@ -1,10 +1,9 @@
-
+from lib import Point
 
 class Vertex():
-    def __init__(self, name, x, y, incident):
+    def __init__(self, name, point, incident):
         self.name = name
-        self.x = x
-        self.y = y
+        self.point = point
         self.incident = incident # initially a string
     def get_coordinates(self):
         return self.x, self.y

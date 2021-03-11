@@ -19,7 +19,7 @@ def draw_from_edge(edge: Edge):
     curr = edge
     while curr: # cicle to read figure edges
         vertex = curr.origin
-        coordinates = [vertex.x, vertex.y]
+        coordinates = [vertex.point.x, vertex.point.y]
         vertices.append(coordinates)
 
         next_edge = curr.next
