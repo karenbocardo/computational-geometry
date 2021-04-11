@@ -7,7 +7,7 @@ class Vertex():
         self.incident = incident # initially a string
 
 class Edge():
-    def __init__(self, name, origin, pair, face, next, previous):
+    def __init__(self, name=None, origin=None, pair=None, face=None, next=None, previous=None):
         self.name = name
         self.origin = origin
         self.pair = pair
