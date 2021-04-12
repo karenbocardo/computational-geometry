@@ -1,6 +1,7 @@
 from data import *
 from lib import Point
 from tabulate import tabulate
+import math
 
 from intersections.algoritmo import AlgoritmoBarrido
 from intersections.Punto import Punto
@@ -33,16 +34,16 @@ def save_segments(edge: Edge): # saves a list of segments from the given edge
 
     return segments
 
-def get_prime(edge_name): return f"{edge_name}_"
-def get_biprime(edge_name): return f"{edge_name}__"
+def get_prime(edge_name): return f"{edge_name}p"
+def get_biprime(edge_name): return f"{edge_name}pp"
 
-def atan2(edge: Edge): # @TODO get atan2
+def edge_atan2(edge: Edge): # @TODO get atan2
     # @FIXME case same x or same y, not triangle
     a, b = edge.origin.point, edge.next.origin.point
     co = abs(a.y - b.y) # opposite leg (cateto)
     ca = abs(a.x - b.x) # adjacent leg
     print(co, ca)
-    return
+    return math.atan2(co, ca)
 
 def sort_circular(circular): # @TODO sort by atan2
     return
@@ -57,8 +58,11 @@ def print_edges(edges):
         if edge:
             # print(f"\t{edge.name}\t{edge.origin.point}\t{edge.pair.name}\t{edge.next.name}\t{edge.previous.name}")
             # print(f"\t{edge.name}\t{edge.origin.point}\t{edge.pair.name}")
-            rows.append([edge.name, edge.origin.point, edge.pair.name])
+            rows.append([edge.name, edge.origin.name, edge.pair.name, edge.next.name, edge.previous.name])
     print(tabulate(rows, headers=["edge", "origin", "pair", "next", "previous"]))
+
+def second_elem(tup):
+    return tup[1]
 
 def connect_layers(folder, layers):
     vertices, edges, faces = save_layers(folder, layers)
@@ -78,7 +82,7 @@ def connect_layers(folder, layers):
     barr = AlgoritmoBarrido(segments)
     barr.barrer()
 
-    circular = list()
+    circular, primes, biprimes = list(), list(), list()
     print(f"intersections:")
     for index, intersection in enumerate(barr.R):
         print(f"[{index}]{intersection}")
@@ -121,21 +125,73 @@ def connect_layers(folder, layers):
             prime.pair = p_biprime
 
             # next and previous — circular list
-            circular += [prime, biprime] # add both to list
+            prime.previous = edges[get_biprime(edge.previous.name)]
+            print(f"\t{prime.name}.previous = {get_biprime(edge.previous.name)}")
+            p_prime.previous = edges[get_biprime(edge_pair.previous.name)]
+            print(f"\t{p_prime.name}.previous = {get_biprime(edge_pair.previous.name)}")
+            biprime.next = edges[get_prime(edge.next.name)]
+            print(f"\t{biprime.name}.next = {get_prime(edge.next.name)}")
+            p_biprime.next = edges[get_prime(edge_pair.next.name)]
+            print(f"\t{p_biprime.name}.next = {get_prime(edge_pair.next.name)}")
 
-            #atan2(prime)
 
-        print_edges(edges)
+            # circular += [prime, biprime] # add both to list
+            # primes += [prime, p_prime]
+            # biprimes += [biprime, p_biprime]
+
+            p1 = new_vertex.point
+            def get_atan2(p1, p2):
+                angle = math.atan2(p2.y - p1.y, p2.x - p1.x)
+                print(f"\t{angle} from {p1} to {p2}")
+                return angle
+
+            primes.append((prime, get_atan2(p1, prime.origin.point)))
+            primes.append((p_prime, get_atan2(p1, p_prime.origin.point)))
+            biprimes.append((biprime, get_atan2(p1, biprime.next.origin.point)))
+            biprimes.append((p_biprime, get_atan2(p1, p_biprime.next.origin.point)))
+
+        primes.sort(key=second_elem)
+        biprimes.sort(key=second_elem)
+
+        for index in range(len(intersection.segments) * 2):
+            prime = primes[index][0]
+            biprime = biprimes[index][0]
+            circular += [prime, biprime]
+
+        circular.reverse()
+        print(f"circular list: \n\t{[edge.name for edge in circular]}")
+        circ_len = len(circular)
+
+        def circular_next(edge):
+            return circular[(circular.index(edge) + 1) % circ_len]
+        def circular_prev(edge):
+            return circular[circular.index(edge) - 1]
 
         for segment in intersection.segments:  # reading segments that intersect
-            prime = edges[get_prime(segment.name)]  # segments represent edges, saved in map
+            edge = edges[segment.name]
+            prime = edges[get_prime(edge.name)]  # segments represent edges, saved in map
             biprime = edges[get_prime(prime.name)]
+
+            edge_pair = edge.pair
+            p_prime = edges[get_prime(edge_pair.name)]
+            p_biprime = edges[get_prime(p_prime.name)]
 
             # --- prime ---> · --- biprime --->
             # prime goes into intersection
             # biprime comes out of intersection
 
-        # @TODO delete original after using prime and biprime
+            # prime's next is circular next
+            prime.next = circular_next(prime)
+            p_prime.next = circular_next(p_prime)
+            # biprime's previous is circular previous
+            biprime.previous = circular_prev(biprime)
+            p_biprime.previous = circular_prev(p_biprime)
+
+            del edges[edge.name]
+            del edges[edge_pair.name]
+
+        print("\nINFO")
+        print_edges(edges)
 
 
     return vertices, edges, faces
