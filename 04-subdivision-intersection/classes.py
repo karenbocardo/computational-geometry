@@ -47,6 +47,13 @@ class Face():
         self.inside = inside # list
     # def add_inside(self, edge): self.inside.append(edge)
 
+class Cycle():
+    def __init__(self, name, edges, left, is_internal):
+        self.name = name
+        self.edges = edges
+        self.left = left
+        self.is_internal = is_internal
+
 
 '''
     #data = read_file(sys.argv[1])

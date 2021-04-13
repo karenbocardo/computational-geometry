@@ -79,9 +79,9 @@ def save_layer(folder, layer):
         faces_map[name] = face
 
     # linking
-    for vertice in vertices_map.values():
+    for vertex in vertices_map.values():
         # strings to replace: incident
-        vertice.incident = edges_map[vertice.incident]
+        vertex.incident = edges_map[vertex.incident]
     for edge in edges_map.values():
         # strings to replace: origin, pair, face, next, previous
         edge.origin = vertices_map[edge.origin]
