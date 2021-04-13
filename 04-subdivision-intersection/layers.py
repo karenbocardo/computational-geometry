@@ -1,5 +1,5 @@
 from data import *
-from lib import Point
+from lib import *
 from tabulate import tabulate
 import math
 
@@ -190,8 +190,67 @@ def connect_layers(folder, layers):
             del edges[edge.name]
             del edges[edge_pair.name]
 
-        print("\nINFO")
-        print_edges(edges)
+    print("\nINFO")
+    print_edges(edges)
+
+    # new faces
+    # go trough edges to check cycles between them
+    cycles = list() # list of tuples (cycle, left, is_internal -True or False-)
+    visited = dict()
+    for edge in edges.values():  visited[edge.name] = False
+    for edge in edges.values():
+        if visited[edge.name]: continue
+        cycle = edge.figure_edges()
+        for edge in cycle:
+            visited[edge.name] = True
+
+
+        left = sorted(sorted(cycle, key=lambda edge: (edge.origin.point.x)), key=lambda edge: (edge.origin.point.y), reverse=True)[0]
+        print(f"cycle: {[edge.name for edge in cycle]} left edge: {left.name}")
+
+        origin = left.origin.point
+        next, prev = left.next.origin.point, left.previous.origin.point
+        a = to_vector(prev, origin)
+        b = to_vector(origin, next)
+        cross = cross_product(a, b)
+
+        is_internal = False  # if the cross product is >= 0: angle is larger than 180° -> external cycle
+        if cross < 0: is_internal = True # if the cross product is < 0: angle is smaller than 180° -> internal cycle
+
+        cycles.append((cycle, left, is_internal))
+
+    print("searching for faces on external cycles")
+    for elem in cycles:
+        cycle, left, is_internal = elem
+
+        if is_internal: continue # internal cycles are faces
+        # external cycles can be conected to others and be faces
+
+        left_point =  left.origin.point
+        horizontal = pts_to_line(left_point, Point(left_point.x - eps, left_point.y)) # horizontal line to the left
+
+        for elem2 in cycles: # search the edge that intersect with the line
+            cycle2, left2, is_internal2 = elem2
+            if is_internal2: continue
+            hit_edge, hit_cycle = None, None
+            for edge in cycle2:
+                edge_line = pts_to_line(edge.origin.point, edge.next.origin.point)
+                if intersection := horizontal.intersects_with(edge_line):
+                    if intersection.x < left_point.x:
+                        print(f"\t\tfound intersection at: {intersection}")
+                        if not hit_edge:
+                            hit_edge = intersection
+                            hit_cycle = cycle2
+                        else:
+                            if hit_edge.x < intersection.x:
+                                hit_edge = intersection
+                                hit_cycle = cycle2
+            if hit_cycle: print("there is a face to connect in graph")
+
+
+
+
+
 
 
     return vertices, edges, faces
