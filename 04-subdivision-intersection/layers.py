@@ -198,15 +198,14 @@ def connect_layers(folder, layers):
     cycles = list() # list of tuples (cycle, left, is_internal -True or False-)
     visited = dict()
     for edge in edges.values():  visited[edge.name] = False
-    for edge in edges.values():
+    for index, edge in enumerate(edges.values()):
         if visited[edge.name]: continue
-        cycle = edge.figure_edges()
-        for edge in cycle:
+        edges_cycle = edge.figure_edges()
+        for edge in edges_cycle:
             visited[edge.name] = True
 
-
-        left = sorted(sorted(cycle, key=lambda edge: (edge.origin.point.x)), key=lambda edge: (edge.origin.point.y), reverse=True)[0]
-        print(f"cycle: {[edge.name for edge in cycle]} left edge: {left.name}")
+        left = sorted(sorted(edges_cycle, key=lambda edge: (edge.origin.point.x)), key=lambda edge: (edge.origin.point.y), reverse=True)[0]
+        print(f"cycle: {[edge.name for edge in edges_cycle]} left edge: {left.name}")
 
         origin = left.origin.point
         next, prev = left.next.origin.point, left.previous.origin.point
@@ -217,23 +216,22 @@ def connect_layers(folder, layers):
         is_internal = False  # if the cross product is >= 0: angle is larger than 180° -> external cycle
         if cross < 0: is_internal = True # if the cross product is < 0: angle is smaller than 180° -> internal cycle
 
-        cycles.append((cycle, left, is_internal))
+        cycle = Cycle(f"c{index + 1}", edges_cycle, left.origin.point, is_internal)
+        cycles.append(cycle)
 
     print("searching for faces on external cycles")
-    for elem in cycles:
-        cycle, left, is_internal = elem
+    for cycle in cycles:
 
-        if is_internal: continue # internal cycles are faces
+        if cycle.is_internal: continue # internal cycles are faces
         # external cycles can be conected to others and be faces
 
-        left_point =  left.origin.point
+        left_point = cycle.left
         horizontal = pts_to_line(left_point, Point(left_point.x - eps, left_point.y)) # horizontal line to the left
 
-        for elem2 in cycles: # search the edge that intersect with the line
-            cycle2, left2, is_internal2 = elem2
-            if is_internal2: continue
+        for cycle2 in cycles: # search the edge that intersect with the line
+            if cycle2.is_internal: continue
             hit_edge, hit_cycle = None, None
-            for edge in cycle2:
+            for edge in cycle2.edges:
                 edge_line = pts_to_line(edge.origin.point, edge.next.origin.point)
                 if intersection := horizontal.intersects_with(edge_line):
                     if intersection.x < left_point.x:
