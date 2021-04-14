@@ -74,6 +74,8 @@ class Point:
         return inside_square(self, x_min, x_max, y_min, y_max)
     def in_line(self, line):
         return point_in_line(self, line)
+    def in_limits(self, limit1, limit2):
+        return inside_limits(self, limit1, limit2)
 
 # left to right
 def sort_x(point: Point): return point.x
@@ -217,6 +219,12 @@ def inside_square(point: Point, x_min, x_max, y_min, y_max):
     in_x = x >= x_min and x <= x_max
     in_y = y >= y_min and y <= y_max
     return in_x and in_y
+def inside_limits(point: Point, limit1: Point, limit2: Point):
+    x, y = [limit1.x, limit2.x], [limit1.y, limit2.y]
+    x_min, x_max = min(x), max(x)
+    y_min, y_max = min(y), max(y)
+    return inside_square(point, x_min, x_max, y_min, y_max)
+
 def point_in_line(point: Point, line: Line):
     return line.a * point.x + line.b * point.y + line.c == 0
 '''
