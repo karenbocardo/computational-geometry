@@ -220,6 +220,11 @@ def connect_layers(folder, layers):
         cycles[cycle.name] = cycle
 
     print("searching for faces on external cycles")
+    faces_graph = dict() # graph to store the connection between the cycles, each connection is a face
+
+    for cycle in cycles.keys():
+        faces_graph[cycle] = list() # initialization of graph
+
     for cycle in cycles.values():
 
         if cycle.is_internal: continue # internal cycles are faces
@@ -232,10 +237,11 @@ def connect_layers(folder, layers):
             if cycle2.is_internal: continue
             hit_edge, hit_cycle = None, None
             for edge in cycle2.edges:
-                edge_line = pts_to_line(edge.origin.point, edge.next.origin.point)
+                point1, point2 = edge.origin.point, edge.next.origin.point
+                edge_line = pts_to_line(point1, point2)
                 if intersection := horizontal.intersects_with(edge_line):
-                    if intersection.x < left_point.x:
-                        print(f"\t\tfound intersection at: {intersection}")
+                    if intersection.in_limits(point1, point2) and intersection.x < left_point.x:
+                        print(f"\tfound intersection at: {intersection}")
                         if not hit_edge:
                             hit_edge = intersection
                             hit_cycle = cycle2.name
@@ -243,7 +249,14 @@ def connect_layers(folder, layers):
                             if hit_edge.x < intersection.x:
                                 hit_edge = intersection
                                 hit_cycle = cycle2.name
-            if hit_cycle: print(f"there is a face to connect in graph between {cycle.name} and {hit_cycle}")
+            if hit_cycle:
+                print(f"\tthere is a face to connect in graph between {cycle.name} and {hit_cycle}")
+                faces_graph[cycle.name].append(hit_cycle) # add connection to graph
+
+        print(faces_graph)
+
+
+
 
 
 
