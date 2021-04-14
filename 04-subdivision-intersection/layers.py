@@ -195,7 +195,7 @@ def connect_layers(folder, layers):
 
     # new faces
     # go trough edges to check cycles between them
-    cycles = list() # list of tuples (cycle, left, is_internal -True or False-)
+    cycles = dict() # dict of Cycles cycle.name:cycle
     visited = dict()
     for edge in edges.values():  visited[edge.name] = False
     for index, edge in enumerate(edges.values()):
@@ -217,10 +217,10 @@ def connect_layers(folder, layers):
         if cross < 0: is_internal = True # if the cross product is < 0: angle is smaller than 180° -> internal cycle
 
         cycle = Cycle(f"c{index + 1}", edges_cycle, left.origin.point, is_internal)
-        cycles.append(cycle)
+        cycles[cycle.name] = cycle
 
     print("searching for faces on external cycles")
-    for cycle in cycles:
+    for cycle in cycles.values():
 
         if cycle.is_internal: continue # internal cycles are faces
         # external cycles can be conected to others and be faces
@@ -228,7 +228,7 @@ def connect_layers(folder, layers):
         left_point = cycle.left
         horizontal = pts_to_line(left_point, Point(left_point.x - eps, left_point.y)) # horizontal line to the left
 
-        for cycle2 in cycles: # search the edge that intersect with the line
+        for cycle2 in cycles.values(): # search the edge that intersect with the line
             if cycle2.is_internal: continue
             hit_edge, hit_cycle = None, None
             for edge in cycle2.edges:
@@ -238,12 +238,12 @@ def connect_layers(folder, layers):
                         print(f"\t\tfound intersection at: {intersection}")
                         if not hit_edge:
                             hit_edge = intersection
-                            hit_cycle = cycle2
+                            hit_cycle = cycle2.name
                         else:
                             if hit_edge.x < intersection.x:
                                 hit_edge = intersection
-                                hit_cycle = cycle2
-            if hit_cycle: print("there is a face to connect in graph")
+                                hit_cycle = cycle2.name
+            if hit_cycle: print(f"there is a face to connect in graph between {cycle.name} and {hit_cycle}")
 
 
 
