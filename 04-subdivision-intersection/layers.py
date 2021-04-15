@@ -92,7 +92,8 @@ def connect_layers(folder, layers):
     for index, intersection in enumerate(barr.R):
         print(f"[{index}]{intersection}")
         point = Point(intersection.point.x, intersection.point.y)
-        new_vertex = Vertex(f"p{len(vertices)+1}", point, "incidente")
+        new_vertex = Vertex(f"p{len(vertices)+1}", point, None)
+        vertices[new_vertex.name] = new_vertex
 
         for segment in intersection.segments: # reading segments that intersect
             edge = edges[segment.name] # segments represent edges, saved in map
@@ -104,11 +105,14 @@ def connect_layers(folder, layers):
             prime_name = get_prime(edge.name)  # prime
             prime = Edge(name=prime_name, origin=edge.origin, face=edge.face)  # new edge
             edges[prime_name] = prime
+            prime.origin.incident = prime # update vertex incident
 
             biprime_name = get_biprime(edge.name)
             biprime = Edge(name=biprime_name) # new edge
             edges[biprime_name] = biprime
             biprime.origin = new_vertex # biprimes have new vertex as origin
+
+            if not new_vertex.incident: new_vertex.incident = biprime
 
             # split pair
             edge_pair = edge.pair
@@ -117,6 +121,7 @@ def connect_layers(folder, layers):
             p_prime_name = get_prime(edge_pair.name)  # prime
             p_prime = Edge(name=p_prime_name, origin=edge_pair.origin, face=edge_pair.face)  # new edge
             edges[p_prime_name] = p_prime
+            p_prime.origin.incident = p_prime  # update vertex incident
 
             p_biprime_name = get_biprime(edge_pair.name)
             p_biprime = Edge(name=p_biprime_name)  # new edge
@@ -266,6 +271,9 @@ def connect_layers(folder, layers):
     # name faces (internal, external with no connections, and connections)
     # add face name to each of the face's edges
 
+    # external faces have a list on the inside
+    # internal faces have one edge start on the outside
+
     save_layer_file(folder, layers, vertices, edges, faces)
     return vertices, edges, faces
 
@@ -302,12 +310,3 @@ def save_layer_file(folder, layers, vertices, edges, faces):
     for face in faces.values(): # @TODO fix how inside is written
         rows.append([face.name, face.inside, face.outside])
     save_file(folder, filename, "car", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.car"
-
-
-
-
-
-
-
-
-
