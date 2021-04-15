@@ -270,47 +270,38 @@ def connect_layers(folder, layers):
     return vertices, edges, faces
 
 def save_layer_file(folder, layers, vertices, edges, faces):
-    # .ver -> vertices
-    print(f"i am here, there are {layers} layers")
+    fmt = "firstrow"
     filename = f"layer0{layers + 1}"
+
+    # .ver -> vertices
     lines = ""
     lines += "Archivo de vértices\n"
     lines += "#################################\n"
-    lines += "Nombre\tx\ty\tIncidente\n"
-    lines += "#################################\n"
+    headers = ["Nombre", "x", "y", "Incidente"]
+    rows = list()
     for vertex in vertices.values():
-        lines += f"{vertex.name}\t{vertex.point.x}\t{vertex.point.y}\t{vertex.incident.name}\n"
-    print(lines)
-    save_file(folder, filename, "ver", lines) # save file in folder/f"{filename}.ver"
+        rows.append([vertex.name, vertex.point.x, vertex.point.y, vertex.incident.name])
+    save_file(folder, filename, "ver", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.ver"
 
     # .ari -> edges (aristas)
-
     lines = ""
     lines += "Archivo de aristas\n"
     lines += "#############################################\n"
-    # lines += "Nombre\tOrigen\tPareja\tCara\tSigue\tAntes\n"
-    # lines += "#############################################\n"
+    headers = ["Nombre", "Origen", "Pareja", "Cara", "Sigue", "Antes"]
     rows = list()
     for edge in edges.values():
-        # lines += f"{edge.name}\t{edge.origin.name}\t{edge.pair.name}\t{edge.next.name}\t{edge.previous.name}\n"
         rows.append([edge.name, edge.origin.name, edge.pair.name, edge.next.name, edge.previous.name])
-    print(lines)
-    save_file(folder, filename, "ari", lines) # save file in folder/f"{filename}.ari"
-    save_file(folder, filename, "ari2", lines + tabulate(rows, tablefmt="firstrow",
-                                                         headers=["Nombre", "Origen", "Pareja", "Cara", "Sigue", "Antes"]))
+    save_file(folder, filename, "ari", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.ari"
 
     # .car -> faces (caras)
     lines = ""
     lines += "Archivo de caras\n"
     lines += "#######################\n"
-    lines += "Nombre\tInterno\tExterno\n"
-    lines += "#######################\n"
-    for face in faces.values():
-        lines += f"{face.name}\t{face.inside}\t{face.outside}\n" # @TODO fix how inside is written
-    print(lines)
-    save_file(folder, filename, "car", lines) # save file in folder/f"{filename}.car"
-
-    return
+    headers = ["Nombre", "Interno", "Externo"]
+    rows = list()
+    for face in faces.values(): # @TODO fix how inside is written
+        rows.append([face.name, face.inside, face.outside])
+    save_file(folder, filename, "car", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.car"
 
 
 
