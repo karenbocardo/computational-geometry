@@ -33,6 +33,8 @@ def draw_from_edge(edge: Edge):
     ax.scatter(x, y, color='grey')
     ax.plot(x, y, color='grey')
 
+def draw_faces(faces: dict):
+    for face in faces.values(): draw_face(face)
 
 def draw_face(face: Face):
     '''
