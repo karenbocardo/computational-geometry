@@ -231,15 +231,19 @@ def connect_layers(folder, layers):
 
     print("searching for faces on external cycles")
     faces_graph = dict() # graph to store the connection between the cycles, each connection is a face
-
-    for cycle in cycles.keys():
-        faces_graph[cycle] = list() # initialization of graph
+    visited = dict() # list for finding connections between external faces
+    for cycle in cycles.values():
+        if not cycle.is_internal:
+            faces_graph[cycle.name] = list() # initialization of graph
+            visited[cycle.name] = False # initialization of visited list
 
     for cycle in cycles.values():
 
-        if cycle.is_internal: continue # internal cycles are faces
+        if cycle.is_internal:
+            print(f"\tcycle {cycle.name} is internal")
+            continue # internal cycles are faces
         # external cycles can be conected to others and be faces
-
+        print(f"\tcycle {cycle.name} is external")
         left_point = cycle.left
         horizontal = pts_to_line(left_point, Point(left_point.x - eps, left_point.y)) # horizontal line to the left
 
@@ -265,16 +269,51 @@ def connect_layers(folder, layers):
             print(f"\tthere is a face to connect in graph between {cycle.name} and {hit_cycle}")
             faces_graph[cycle.name].append(hit_cycle) # add connection to graph
 
-    print(faces_graph)
+    print(f"graph for faces is {faces_graph}")
+    new_faces, face_index = dict(), 1
+
+    def DFS(conn, cycle):
+        visited[cycle] = True # mark as visited
+        conn.append(cycle) # store to connection list
+        # repeat for all adjacent
+        for cycle2 in faces_graph[cycle]:
+            if not visited[cycle2]:
+                conn = DFS(conn, cycle2)
+        return conn
 
     # external cycles with dict list length larger than 0 -> will be a face with their connections
     # name faces (internal, external with no connections, and connections)
     # add face name to each of the face's edges
 
-    # external faces have a list on the inside
-    # internal faces have one edge start on the outside
+    for cycle in cycles.values():
+        if cycle.is_internal: # internal faces have one edge start on the outside
+            name = f"f{face_index}"
+            first_edge = cycle.edges[0] # first edge of cycle
+            new_faces[name] = Face(name, first_edge, None) # save one edge of the cycle on outside
+            face_index += 1 # increment index for naming
+            continue
 
-    save_layer_file(folder, layers, vertices, edges, faces)
+        # external faces have a list on the inside
+        # case of not connected external faces
+        if len(faces_graph[cycle.name]) == 0: # add just one edge to inside list of face
+            name = f"f{face_index}"
+            first_edge = cycle.edges[0]  # first edge of cycle
+            new_faces[name] = Face(name, None, [first_edge])
+            face_index += 1
+            continue
+        # case of connected external faces
+        # find connection on faces graph, save connection to inside list of face
+        if visited[cycle.name]: continue
+        face_conn = DFS([], cycle.name)
+        name = f"f{face_index}"
+        edges = list()
+        for cycle in face_conn:
+            first_edge = cycle.edges[0]
+            edges.append(first_edge)
+        new_faces[name] = Face(name, None, [edges])
+        face_index += 1
+
+    save_layer_file(folder, layers, vertices, edges, new_faces)
     return vertices, edges, faces
 
 def save_layer_file(folder, layers, vertices, edges, faces):
@@ -307,6 +346,17 @@ def save_layer_file(folder, layers, vertices, edges, faces):
     lines += "#######################\n"
     headers = ["Nombre", "Interno", "Externo"]
     rows = list()
-    for face in faces.values(): # @TODO fix how inside is written
-        rows.append([face.name, face.inside, face.outside])
+    for face in faces.values():
+        ins, outs = "", "" # strings initialization to write in file
+        if face.outside: outs = f"{face.outside.name}"
+        else: outs = "None"
+        if face.inside:
+            if len(face.inside) > 1: # if list has more than one edge
+                ins = "["
+                for edge in face.inside[:-1]: # reads all except last one
+                    ins += f"{edge.name},"
+                ins += f"{face.inside[-1].name}]" # add last one to string
+            else: ins = f"{face.inside[0].name}"
+        else: ins = "None"
+        rows.append([face.name, ins, outs])
     save_file(folder, filename, "car", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.car"

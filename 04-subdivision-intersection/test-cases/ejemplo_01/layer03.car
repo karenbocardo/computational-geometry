@@ -1,6 +1,5 @@
 Archivo de caras
 #######################
-Nombre    Interno                                 Externo
---------  --------------------------------------  ---------
-f1        [<classes.Edge object at 0x14c2702e0>]
-f2        [<classes.Edge object at 0x14c2616d0>]
+Nombre    Interno    Externo
+--------  ---------  ---------
+f1        s11p       None
