@@ -50,12 +50,12 @@ def draw_face(face: Face):
     if face.outside:
         draw_from_edge(face.outside)
 
-def draw():
+def draw(folder):
     # patches
     colors = 100 * np.random.rand(len(patches))
     p = PatchCollection(patches, alpha=0.5)
     p.set_array(np.array(colors))
     ax.add_collection(p)
     ax.margins(0.05)
-    #plt.savefig("fig.png")
+    plt.savefig(f"test-cases/{folder}/out.png")
     plt.show()
