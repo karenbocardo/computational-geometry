@@ -7,6 +7,11 @@ from intersections.algoritmo import AlgoritmoBarrido
 from intersections.Punto import Punto
 from intersections.Segmento import Segmento
 
+def save_file(folder, filename, ext, lines):
+    f = open(f"test-cases/{folder}/{filename}.{ext}", "w")
+    f.write(lines)
+    f.close()
+
 # @TODO check if segment already exists
 def save_segments(edge: Edge): # saves a list of segments from the given edge
     segments = list()
@@ -233,9 +238,10 @@ def connect_layers(folder, layers):
         left_point = cycle.left
         horizontal = pts_to_line(left_point, Point(left_point.x - eps, left_point.y)) # horizontal line to the left
 
+        hit_edge, hit_cycle = None, None
         for cycle2 in cycles.values(): # search the edge that intersect with the line
             if cycle2.is_internal: continue
-            hit_edge, hit_cycle = None, None
+
             for edge in cycle2.edges:
                 point1, point2 = edge.origin.point, edge.next.origin.point
                 edge_line = pts_to_line(point1, point2)
@@ -249,19 +255,68 @@ def connect_layers(folder, layers):
                             if hit_edge.x < intersection.x:
                                 hit_edge = intersection
                                 hit_cycle = cycle2.name
-            if hit_cycle:
-                print(f"\tthere is a face to connect in graph between {cycle.name} and {hit_cycle}")
-                faces_graph[cycle.name].append(hit_cycle) # add connection to graph
 
-        print(faces_graph)
+        if hit_cycle:
+            print(f"\tthere is a face to connect in graph between {cycle.name} and {hit_cycle}")
+            faces_graph[cycle.name].append(hit_cycle) # add connection to graph
 
+    print(faces_graph)
 
+    # external cycles with dict list length larger than 0 -> will be a face with their connections
+    # name faces (internal, external with no connections, and connections)
+    # add face name to each of the face's edges
 
-
-
-
-
-
-
-
+    save_layer_file(folder, layers, vertices, edges, faces)
     return vertices, edges, faces
+
+def save_layer_file(folder, layers, vertices, edges, faces):
+    # .ver -> vertices
+    print(f"i am here, there are {layers} layers")
+    filename = f"layer0{layers + 1}"
+    lines = ""
+    lines += "Archivo de vértices\n"
+    lines += "#################################\n"
+    lines += "Nombre\tx\ty\tIncidente\n"
+    lines += "#################################\n"
+    for vertex in vertices.values():
+        lines += f"{vertex.name}\t{vertex.point.x}\t{vertex.point.y}\t{vertex.incident.name}\n"
+    print(lines)
+    save_file(folder, filename, "ver", lines) # save file in folder/f"{filename}.ver"
+
+    # .ari -> edges (aristas)
+
+    lines = ""
+    lines += "Archivo de aristas\n"
+    lines += "#############################################\n"
+    # lines += "Nombre\tOrigen\tPareja\tCara\tSigue\tAntes\n"
+    # lines += "#############################################\n"
+    rows = list()
+    for edge in edges.values():
+        # lines += f"{edge.name}\t{edge.origin.name}\t{edge.pair.name}\t{edge.next.name}\t{edge.previous.name}\n"
+        rows.append([edge.name, edge.origin.name, edge.pair.name, edge.next.name, edge.previous.name])
+    print(lines)
+    save_file(folder, filename, "ari", lines) # save file in folder/f"{filename}.ari"
+    save_file(folder, filename, "ari2", lines + tabulate(rows, tablefmt="firstrow",
+                                                         headers=["Nombre", "Origen", "Pareja", "Cara", "Sigue", "Antes"]))
+
+    # .car -> faces (caras)
+    lines = ""
+    lines += "Archivo de caras\n"
+    lines += "#######################\n"
+    lines += "Nombre\tInterno\tExterno\n"
+    lines += "#######################\n"
+    for face in faces.values():
+        lines += f"{face.name}\t{face.inside}\t{face.outside}\n" # @TODO fix how inside is written
+    print(lines)
+    save_file(folder, filename, "car", lines) # save file in folder/f"{filename}.car"
+
+    return
+
+
+
+
+
+
+
+
+
