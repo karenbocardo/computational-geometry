@@ -289,8 +289,10 @@ def connect_layers(folder, layers):
         if cycle.is_internal: # internal faces have one edge start on the outside
             name = f"f{face_index}"
             first_edge = cycle.edges[0] # first edge of cycle
-            new_faces[name] = Face(name, first_edge, None) # save one edge of the cycle on outside
+            face = Face(name, first_edge, None)
+            new_faces[name] =  face# save one edge of the cycle on outside
             face_index += 1 # increment index for naming
+            for edge in cycle.edges: edge.face = face # update edges faces
             continue
 
         # external faces have a list on the inside
@@ -298,8 +300,10 @@ def connect_layers(folder, layers):
         if len(faces_graph[cycle.name]) == 0: # add just one edge to inside list of face
             name = f"f{face_index}"
             first_edge = cycle.edges[0]  # first edge of cycle
-            new_faces[name] = Face(name, None, [first_edge])
+            face = Face(name, None, [first_edge])
+            new_faces[name] = face
             face_index += 1
+            for edge in cycle.edges: edge.face = face  # update edges faces
             continue
         # case of connected external faces
         # find connection on faces graph, save connection to inside list of face
@@ -307,10 +311,13 @@ def connect_layers(folder, layers):
         face_conn = DFS([], cycle.name)
         name = f"f{face_index}"
         edges = list()
+        face = Face(name, None, None)
         for cycle in face_conn:
             first_edge = cycle.edges[0]
             edges.append(first_edge)
-        new_faces[name] = Face(name, None, [edges])
+            for edge in cycle.edges: edge.face = face
+        face.inside = [edges]
+        new_faces[name] = face
         face_index += 1
 
     save_layer_file(folder, layers, vertices, edges, new_faces)
@@ -337,7 +344,7 @@ def save_layer_file(folder, layers, vertices, edges, faces):
     headers = ["Nombre", "Origen", "Pareja", "Cara", "Sigue", "Antes"]
     rows = list()
     for edge in edges.values():
-        rows.append([edge.name, edge.origin.name, edge.pair.name, edge.next.name, edge.previous.name])
+        rows.append([edge.name, edge.origin.name, edge.pair.name, edge.face.name, edge.next.name, edge.previous.name])
     save_file(folder, filename, "ari", lines + tabulate(rows, tablefmt=fmt, headers=headers)) # save file in folder/f"{filename}.ari"
 
     # .car -> faces (caras)
