@@ -1,0 +1,2 @@
+cd Google\ Drive/2021-2/geometría\ computacional/code
+source venv/bin/activate  
